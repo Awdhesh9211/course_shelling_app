@@ -1,4 +1,4 @@
-import {Schema,models,model} from "mongoose";
+import mongoose, {Schema} from "mongoose";
 const {ObjectId} =mongoose.Types;
 
 const courseSchema =new Schema({
@@ -10,4 +10,4 @@ const courseSchema =new Schema({
 });
 
 
-export const Course=models.Course || model("Course",courseSchema);
+export const Course=mongoose.models.Course || mongoose.model("Course",courseSchema);

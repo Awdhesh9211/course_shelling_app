@@ -1,4 +1,4 @@
-import {Schema,models,model} from "mongoose";
+import mongoose,{Schema} from "mongoose";
 const {ObjectId} =mongoose.Types;
 
 
@@ -8,4 +8,4 @@ const purchaseSchema =new Schema({
 });
 
 
-export const Purchase=models.Purchase || model("Purchase",purchaseSchema);
+export const Purchase=mongoose.models.Purchase || mongoose.model("Purchase",purchaseSchema);

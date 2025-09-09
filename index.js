@@ -2,7 +2,7 @@ import DBConnect from "./config/db.js";
 import express from "express";
 
 //route import
-import {UserRoute,AdminRoute,CourseRoute} from "./routes/index.js";
+import {UserRoute,AdminRoute} from "./routes/index.js";
 //constant import
 import { DB_NAME,DB_URL,PORT } from "./constant/index.js";
 
@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended:true}));
 // routes
 app.use("/api/v1/user",UserRoute);
 app.use("/api/v1/admin",AdminRoute);
-app.use("/api/v1/couses",CourseRoute);
+// app.use("/api/v1/couses",CourseRoute);
 
 
 (async () => {

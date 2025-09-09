@@ -1,6 +1,4 @@
-import mongoose, {Schema,models, model} from "mongoose";
-const {ObjectId}=mongoose.Types;
-
+import mongoose,{Schema} from "mongoose";
 
 // Schema 
 const userSchema =new Schema({
@@ -10,7 +8,7 @@ const userSchema =new Schema({
   lastName:{type:String},
   purchasedCourses:[
     {
-      type:ObjectId,
+      type:mongoose.Types.ObjectId,
       ref:"Course"
     },
   ]
@@ -18,4 +16,4 @@ const userSchema =new Schema({
 
 
 
-export const User=models.User || model("User",userSchema);
+export const User=mongoose.models.User || mongoose.model("User",userSchema);

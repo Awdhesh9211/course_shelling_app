@@ -4,6 +4,9 @@ import {userSignup,userSignin,userPurchase}from "../controllers/user.controller.
 // user apis   -> /user
 UserRoute.post("/signup",userSignup);
 UserRoute.post("/signin",userSignin);
+
+
+UserRoute.get("/profile",()=>{});
 UserRoute.get("/purchases",userPurchase);
 
 export default UserRoute;

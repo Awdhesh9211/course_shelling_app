@@ -1,4 +1,4 @@
-import {Schema,models,model, Model} from "mongoose";
+import mongoose,{Schema} from "mongoose";
 
 
 const adminSchema =new Schema({
@@ -10,4 +10,4 @@ const adminSchema =new Schema({
 
 
 
-export const Admin=models.Admin || model("Admin",adminSchema);
+export const Admin=mongoose.models.Admin || mongoose.model("Admin",adminSchema);
