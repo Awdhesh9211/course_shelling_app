@@ -1,4 +1,4 @@
-import { JWT_SECRET } from "../constant/index.js";
+import { JWT_USER_SECRET } from "../constant/index.js";
 import  {User}  from "../models/index.js";
 import { UserSigninValidate,UserSignupValidate } from "../validation/index.js";
 import bcrypt from "bcrypt";
@@ -64,7 +64,7 @@ export const userSignin = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      JWT_SECRET,
+      JWT_USER_SECRET,
       { expiresIn: "1h" }
     );
 

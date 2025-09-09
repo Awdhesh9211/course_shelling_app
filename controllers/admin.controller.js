@@ -1,4 +1,4 @@
-import { JWT_SECRET } from "../constant/index.js";
+import { JWT_ADMIN_SECRET } from "../constant/index.js";
 import  {Admin}  from "../models/index.js";
 import {  AdminSigninValidate, AdminSignupValidate } from "../validation/index.js";
 import bcrypt from "bcrypt";
@@ -64,7 +64,7 @@ export const  AdminSignin = async (req, res) => {
 
     const token = jwt.sign(
       { id:  admin._id, email:  admin.email },
-      JWT_SECRET,
+      JWT_ADMIN_SECRET,
       { expiresIn: "1h" }
     );
 
