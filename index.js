@@ -1,8 +1,9 @@
 import DBConnect from "./config/db.js";
 import express from "express";
+import rateLimit from "express-rate-limit";
 
 //route import
-import {UserRoute,AdminRoute} from "./routes/index.js";
+import {UserRoute,AdminRoute, CourseRoute} from "./routes/index.js";
 //constant import
 import { DB_NAME,DB_URL,PORT } from "./constant/index.js";
 
@@ -14,11 +15,41 @@ const app=express();
 // middeleware 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
+// Rate limiting middleware (apply to all API routes)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 429,
+    message: "Too many requests. Please try again later.",
+  },
+});
+
+// Apply rate limiter to all API routes
+app.use("/api/", apiLimiter);
 
 // routes
 app.use("/api/v1/user",UserRoute);
 app.use("/api/v1/admin",AdminRoute);
-// app.use("/api/v1/couses",CourseRoute);
+app.use("/api/v1/course",CourseRoute);
+
+
+
+
+// ERROR MIDDELWARE
+
+
+// NOT FOUND 
+// 404 Not Found Handler (should be after all route handlers)
+app.use((req, res, next) => {
+  res.status(404).json({
+    status: 404,
+    message: "Route not found",
+    path: req.originalUrl,
+  });
+});
 
 
 (async () => {
