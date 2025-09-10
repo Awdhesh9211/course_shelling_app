@@ -2,6 +2,7 @@ import DBConnect from "./config/db.js";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 //route import
 import {UserRoute,AdminRoute, CourseRoute} from "./routes/index.js";
 //constant import
@@ -17,6 +18,7 @@ const app=express();
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
+app.use(cookieParser());
 // Rate limiting middleware (apply to all API routes)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
