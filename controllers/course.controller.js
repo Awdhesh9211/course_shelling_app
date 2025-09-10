@@ -1,6 +1,8 @@
 import { Course, User } from "../models/index.js";
+import { ApiError } from "../utils/ApiError.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
+
 // ✅ Purchase a course
 export const purchaseCourse = asyncHandler(async (req, res) => {
   const userId = req.user.id;
@@ -8,23 +10,16 @@ export const purchaseCourse = asyncHandler(async (req, res) => {
 
   // Check if the course exists
   const course = await Course.findById(courseId);
-  if (!course) {
-    return res.status(404).json({ message: "Course not found" });
-  }
+  if (!course) throw new ApiError(404, "Course not found");
 
   // Check if user exists
   const user = await User.findById(userId);
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
+  if (!user) throw new ApiError(404, "User not found");
 
   // Check if already purchased
   const alreadyPurchased = user.purchasedCourses?.includes(courseId);
-  if (alreadyPurchased) {
-    return res
-      .status(400)
-      .json({ message: "You have already purchased this course" });
-  }
+  if (alreadyPurchased)
+    throw new ApiError(400, "You have already purchased this course");
 
   // Add course to user's purchased list
   user.purchasedCourses = [...(user.purchasedCourses || []), courseId];
@@ -42,6 +37,9 @@ export const previewCourses = asyncHandler(async (req, res) => {
     {},
     "title description price imageUrl" // Select only safe fields
   );
+
+  if (!courses.length)
+    throw new ApiError(404, "No courses available at the moment");
 
   return res.status(200).json({
     message: "Courses fetched successfully",

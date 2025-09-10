@@ -5,29 +5,29 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 
 // ✅ Admin signup
 export const AdminSignup = asyncHandler(async (req, res) => {
   const parsed = AdminSignupValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+    throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
-        testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
+        field: p.path.join("."),
+        message: p.message,
       }))
     );
   }
+
   const { email, password, firstName, lastName } = parsed.data;
 
-  // check existing
   const existing = await Admin.findOne({ email });
-  if (existing) {
-    return res.status(409).json({ error: "Admin already exists" });
-  }
+  if (existing) throw new ApiError(409, "Admin already exists");
 
-  // hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // create Admin
   const newAdmin = await Admin.create({
     email,
     password: hashedPassword,
@@ -36,6 +36,7 @@ export const AdminSignup = asyncHandler(async (req, res) => {
   });
 
   return res.status(201).json({
+    status: "success",
     message: "Admin created successfully",
     admin: {
       id: newAdmin._id,
@@ -50,19 +51,23 @@ export const AdminSignup = asyncHandler(async (req, res) => {
 export const AdminSignin = asyncHandler(async (req, res) => {
   const parsed = AdminSigninValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+    throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
-        testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
+        field: p.path.join("."),
+        message: p.message,
       }))
     );
   }
+
   const { email, password } = parsed.data;
 
   const admin = await Admin.findOne({ email });
-  if (!admin) return res.status(401).json({ error: "Invalid credentials" });
+  if (!admin) throw new ApiError(401, "Invalid credentials");
 
   const isMatch = await bcrypt.compare(password, admin.password);
-  if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+  if (!isMatch) throw new ApiError(401, "Invalid credentials");
 
   const token = jwt.sign(
     { id: admin._id, email: admin.email },
@@ -70,7 +75,7 @@ export const AdminSignin = asyncHandler(async (req, res) => {
     { expiresIn: "1h" }
   );
 
-  res.json({ message: "Login successful", token });
+  res.json({ status: "success", message: "Login successful", token });
 });
 
 // ✅ Create a course
@@ -79,12 +84,16 @@ export const createCourse = asyncHandler(async (req, res) => {
 
   const parsed = CreateCourseValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+    throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
-        testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
+        field: p.path.join("."),
+        message: p.message,
       }))
     );
   }
+
   const { title, description, imageUrl, price } = parsed.data;
 
   const course = await Course.create({
@@ -95,7 +104,8 @@ export const createCourse = asyncHandler(async (req, res) => {
     creatorId: adminId,
   });
 
-  res.json({
+  res.status(201).json({
+    status: "success",
     message: "Course Created",
     courseId: course._id,
   });
@@ -106,31 +116,23 @@ export const updateCourse = asyncHandler(async (req, res) => {
   const adminId = req.admin.id;
   const courseId = req.params.courseId;
 
-  // Check if the course exists and was created by the current admin
-  const course = await Course.findOne({
-    _id: courseId,
-    creatorId: adminId,
-  });
+  const course = await Course.findOne({ _id: courseId, creatorId: adminId });
+  if (!course) throw new ApiError(403, "You don't have permission to update this course");
 
-  if (!course) {
-    return res.status(403).json({
-      message: "You don't have permission to update this course.",
-    });
-  }
-
-  // Validate the request body
   const parsed = UpdateCourseValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+    throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
-        testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
+        field: p.path.join("."),
+        message: p.message,
       }))
     );
   }
 
   const { title, description, imageUrl, price } = parsed.data;
 
-  // Update fields if they are provided
   if (title !== undefined) course.title = title;
   if (description !== undefined) course.description = description;
   if (imageUrl !== undefined) course.imageUrl = imageUrl;
@@ -139,6 +141,7 @@ export const updateCourse = asyncHandler(async (req, res) => {
   await course.save();
 
   res.json({
+    status: "success",
     message: "Course Updated",
     courseId: course._id,
   });
@@ -147,10 +150,9 @@ export const updateCourse = asyncHandler(async (req, res) => {
 // ✅ Bulk courses
 export const bulkCourse = asyncHandler(async (req, res) => {
   const adminId = req.admin.id;
-
   const courses = await Course.find({ creatorId: adminId }).populate("creatorId");
 
-  res.status(200).json({
-    courses,
-  });
+  if (!courses.length) throw new ApiError(404, "No courses found for this admin");
+
+  res.status(200).json({ status: "success", courses });
 });

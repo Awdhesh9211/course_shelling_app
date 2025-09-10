@@ -5,13 +5,17 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 
 // ✅ SIGNUP
 export const userSignup = asyncHandler(async (req, res) => {
   // validate
   const parsed = UserSignupValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+    // throw a custom error with details array
+    throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
         testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
       }))
@@ -22,9 +26,8 @@ export const userSignup = asyncHandler(async (req, res) => {
 
   // check existing
   const existing = await User.findOne({ email });
-  if (existing) {
-    return res.status(409).json({ error: "User already exists" });
-  }
+ 
+  if (existing) throw new ApiError(409, "User already exists");
 
   // hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -53,7 +56,9 @@ export const userSignin = asyncHandler(async (req, res) => {
   // validate
   const parsed = UserSigninValidate.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json(
+      throw new ApiError(
+      400,
+      "Validation failed",
       JSON.parse(parsed.error.message).map((p, i) => ({
         testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`,
       }))
@@ -63,10 +68,10 @@ export const userSignin = asyncHandler(async (req, res) => {
   const { email, password } = parsed.data;
 
   const user = await User.findOne({ email });
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+  if (!user) throw new ApiError(401, "Invalid credentials");
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+  if (!isMatch) throw new ApiError(401, "Invalid credentials");
 
   const token = jwt.sign(
     { id: user._id, email: user.email },
@@ -84,9 +89,7 @@ export const userPurchase = asyncHandler(async (req, res) => {
   // 1. Find the user and populate their purchased courses
   const user = await User.findById(userId).populate("purchasedCourses");
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
+  if (!user) throw new ApiError(404, "User not found");
 
   // 2. Return the list of purchased courses
   return res.status(200).json({
