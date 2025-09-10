@@ -3,7 +3,7 @@ import { JWT_USER_SECRET } from '../constant/index.js';
 
 export const isUserAuth=(req,res,next)=>{
       try {
-            const token=req.headers.token;
+           const token=req.cookies?.userToken;
             const decode=jwt.verify(token,JWT_USER_SECRET);
         
             if(decode){

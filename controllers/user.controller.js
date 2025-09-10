@@ -79,6 +79,14 @@ export const userSignin = asyncHandler(async (req, res) => {
     { expiresIn: "1h" }
   );
 
+    // ✅ Set token in cookie
+  res.cookie("userToken", token, {
+    httpOnly: true,           // cannot be accessed by JS on client
+    secure: false,            // false for localhost, true on HTTPS
+    sameSite: "strict",       // CSRF protection
+    maxAge: 60 * 60 * 1000    // 1 hour in ms
+  });
+
   res.json({ message: "Login successful", token });
 });
 

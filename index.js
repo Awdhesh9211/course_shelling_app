@@ -1,11 +1,12 @@
 import DBConnect from "./config/db.js";
 import express from "express";
 import rateLimit from "express-rate-limit";
-
+import cors from "cors";
 //route import
 import {UserRoute,AdminRoute, CourseRoute} from "./routes/index.js";
 //constant import
 import { DB_NAME,DB_URL,PORT } from "./constant/index.js";
+import { ApiError } from "./utils/ApiError.js";
 
 
 
@@ -13,6 +14,7 @@ import { DB_NAME,DB_URL,PORT } from "./constant/index.js";
 const app=express();
 
 // middeleware 
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 // Rate limiting middleware (apply to all API routes)
