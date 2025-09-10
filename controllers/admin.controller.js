@@ -1,6 +1,7 @@
+import mongoose from "mongoose";
 import { JWT_ADMIN_SECRET } from "../constant/index.js";
-import  {Admin}  from "../models/index.js";
-import {  AdminSigninValidate, AdminSignupValidate } from "../validation/index.js";
+import  {Admin, Course}  from "../models/index.js";
+import {  AdminSigninValidate, AdminSignupValidate, CreateCourseValidate, UpdateCourseValidate } from "../validation/index.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -74,3 +75,102 @@ export const  AdminSignin = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
+// COURSE - create 
+export const createCourse=async(req,res)=>{
+try {
+        const adminId=req.admin.id;
+        
+        const parsed =  CreateCourseValidate.safeParse(req.body);
+        if (!parsed.success) {
+          return res.status(400).json(JSON.parse(parsed.error.message).map((p,i)=>({testFail:`${(i+1)}) ${p.path.join(".")} => ${p.message}`})));
+        }
+        const {title,description,imageUrl,price}=parsed.data;
+    
+        // create a course 
+        const course=await Course.create({
+            title,
+            description,
+            price,
+            imageUrl,
+            creatorId:adminId
+        })
+    
+        res.json({
+            message:'Course Created',
+            courseId:course._id
+        })
+} catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+}
+
+}
+
+export const updateCourse=async(req,res)=>{
+try {
+     const adminId = req.admin.id;
+     const courseId = req.params.courseId;
+     
+     // 1. Check if the course exists and was created by the current admin
+     const course = await Course.findOne({
+       _id: courseId,
+       creatorId: adminId
+     });
+     
+     if (!course) {
+       return res.status(403).json({ message: "You don't have permission to update this course." });
+     }
+     
+     // 2. Validate the request body
+     const parsed = UpdateCourseValidate.safeParse(req.body);
+     if (!parsed.success) {
+       return res.status(400).json(
+         JSON.parse(parsed.error.message).map((p, i) => ({
+           testFail: `${i + 1}) ${p.path.join(".")} => ${p.message}`
+         }))
+       );
+     }
+     
+     const { title, description, imageUrl, price } = parsed.data;
+     
+     // 3. Update fields if they are provided
+     if (title !== undefined) course.title = title;
+     if (description !== undefined) course.description = description;
+     if (imageUrl !== undefined) course.imageUrl = imageUrl;
+     if (price !== undefined) course.price = price;
+     
+     // 4. Save the updated course
+     await course.save();
+     
+     // 5. Send a response
+     res.json({
+       message: 'Course Updated',
+       courseId: course._id
+     });
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+
+}
+
+export const bulkCourse=async(req,res)=>{
+try {
+        const adminId=req.admin.id;
+    
+        // update a course 
+        const course=await Course.find(
+            {
+                creatorId:adminId
+            }).populate("creatorId");
+
+    
+        res.status(200).json({
+           courses:course
+        })
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+
+}

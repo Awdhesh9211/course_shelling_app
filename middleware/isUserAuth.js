@@ -1,5 +1,5 @@
-import {jwt} from 'jsonwebtoken';
-import { JWT_USER_SECRET } from '../constant';
+import jwt from 'jsonwebtoken';
+import { JWT_USER_SECRET } from '../constant/index.js';
 
 export const isUserAuth=(req,res,next)=>{
       try {

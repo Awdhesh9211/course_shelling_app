@@ -6,7 +6,7 @@ UserRoute.post("/signup",userSignup);
 UserRoute.post("/signin",userSignin);
 
 
-UserRoute.get("/profile",()=>{});
+// UserRoute.get("/profile",);
 UserRoute.get("/purchases",userPurchase);
 
 export default UserRoute;
